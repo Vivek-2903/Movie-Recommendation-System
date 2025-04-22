@@ -59,7 +59,6 @@ TMDB_API_KEY = "YOUR_TMDB_API_KEY"
 
 # --- FUNCTIONS ---
 def load_data():
-def load_data():
     df = pd.read_csv("movies.csv", encoding="latin1")  # Changed to relative path
     df = df.drop(['duration', 'date_added', 'rating'], axis=1, errors='ignore')
     df = df.fillna({'director':'Unknown', 'cast':'Unknown', 'country':'Unknown'})
