@@ -2,7 +2,6 @@ import pandas as pd
 import streamlit as st
 import requests
 import random
-from youtubesearchpython import VideosSearch
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from streamlit_extras.card import card
@@ -56,7 +55,7 @@ MOVIE_THEMED_IMAGES = [
 ]
 
 # --- TMDB API ---
-TMDB_API_KEY = "YOUR_TMDB_API_KEY"
+TMDB_API_KEY = "YOUR_TMDB_API_KEY"  # Replace with your actual key
 
 # --- FUNCTIONS ---
 def load_data():
@@ -94,15 +93,9 @@ def fetch_poster(title):
     return get_random_movie_image()
 
 def fetch_trailer(title):
-    """Get YouTube trailer link using youtube-search-python"""
-    try:
-        videos_search = VideosSearch(f"{title} official trailer", limit=1)
-        results = videos_search.result()
-        if results['result']:
-            return results['result'][0]['link']
-    except Exception as e:
-        st.warning(f"Trailer error: {e}")
-    return None
+    """Simplified trailer search using direct YouTube URL"""
+    search_query = f"{title} official trailer".replace(" ", "+")
+    return f"https://www.youtube.com/results?search_query={search_query}"
 
 def get_recommendations(title, df, cosine_sim, indices, n=10):
     try:
