@@ -59,7 +59,8 @@ TMDB_API_KEY = "YOUR_TMDB_API_KEY"
 
 # --- FUNCTIONS ---
 def load_data():
-    df = pd.read_csv(r"C:\Users\vivek\Desktop\streamlit\movies.csv", encoding="latin1")
+def load_data():
+    df = pd.read_csv("movies.csv", encoding="latin1")  # Changed to relative path
     df = df.drop(['duration', 'date_added', 'rating'], axis=1, errors='ignore')
     df = df.fillna({'director':'Unknown', 'cast':'Unknown', 'country':'Unknown'})
     df['features'] = df['title'] + ' ' + df['director'] + ' ' + df['cast'] + ' ' + df['listed_in'] + ' ' + df['description']
