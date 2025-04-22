@@ -2,7 +2,7 @@ import pandas as pd
 import streamlit as st
 import requests
 import random
-from youtube_search import YoutubeSearch
+from youtubesearchpython import VideosSearch
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from streamlit_extras.card import card
@@ -94,12 +94,15 @@ def fetch_poster(title):
     return get_random_movie_image()
 
 def fetch_trailer(title):
+    """Get YouTube trailer link using youtube-search-python"""
     try:
-        results = YoutubeSearch(f"{title} official trailer", max_results=1).to_dict()
-        if results:
-            return f"https://www.youtube.com/watch?v={results[0]['id']}"
-    except:
-        return None
+        videos_search = VideosSearch(f"{title} official trailer", limit=1)
+        results = videos_search.result()
+        if results['result']:
+            return results['result'][0]['link']
+    except Exception as e:
+        st.warning(f"Trailer error: {e}")
+    return None
 
 def get_recommendations(title, df, cosine_sim, indices, n=10):
     try:
