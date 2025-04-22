@@ -2,6 +2,7 @@ import pandas as pd
 import streamlit as st
 import requests
 import random
+import os
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from streamlit_extras.card import card
@@ -59,9 +60,51 @@ TMDB_API_KEY = "YOUR_TMDB_API_KEY"  # Replace with your actual key
 
 # --- FUNCTIONS ---
 def load_data():
-    df = pd.read_csv(r"C:\Users\vivek\Desktop\Movie Recommendation\data\movies.csv", encoding="latin1")
-    df = df.drop(['duration', 'date_added', 'rating'], axis=1, errors='ignore')
-    df = df.fillna({'director':'Unknown', 'cast':'Unknown', 'country':'Unknown'})
+    """Load movie data with multiple fallback options"""
+    # Try different possible file locations
+    possible_paths = [
+        "data/movies.csv",               # Relative path
+        "movies.csv",                    # Same directory
+        os.path.expanduser("~/movie-recommendation-system/data/movies.csv"),  # Linux home dir
+        "https://raw.githubusercontent.com/yourusername/movie-recommendation-system/main/data/movies.csv"  # Online
+    ]
+    
+    for path in possible_paths:
+        try:
+            df = pd.read_csv(path, encoding="latin1")
+            st.success(f"Successfully loaded data from: {path}")
+            
+            # Data cleaning
+            df = df.drop(['duration', 'date_added', 'rating'], axis=1, errors='ignore')
+            df = df.fillna({'director':'Unknown', 'cast':'Unknown', 'country':'Unknown'})
+            df['features'] = df['title'] + ' ' + df['director'] + ' ' + df['cast'] + ' ' + df['listed_in'] + ' ' + df['description']
+            
+            # TF-IDF Vectorizer
+            tfidf = TfidfVectorizer(stop_words='english')
+            tfidf_matrix = tfidf.fit_transform(df['features'])
+            
+            cosine_sim = cosine_similarity(tfidf_matrix, tfidf_matrix)
+            indices = pd.Series(df.index, index=df['title']).drop_duplicates()
+            
+            return df, cosine_sim, indices
+            
+        except Exception as e:
+            st.warning(f"Failed to load from {path}: {str(e)}")
+            continue
+    
+    # If all paths fail, use sample data
+    st.error("Could not load movie data file. Using sample data.")
+    sample_data = {
+        'title': ['The Shawshank Redemption', 'The Godfather', 'The Dark Knight'],
+        'director': ['Frank Darabont', 'Francis Ford Coppola', 'Christopher Nolan'],
+        'cast': ['Tim Robbins, Morgan Freeman', 'Marlon Brando, Al Pacino', 'Christian Bale, Heath Ledger'],
+        'country': ['USA', 'USA', 'USA'],
+        'listed_in': ['Drama', 'Crime,Drama', 'Action,Crime,Drama'],
+        'description': ['Two imprisoned men bond over a number of years...', 
+                       'The aging patriarch of an organized crime dynasty...',
+                       'When the menace known as the Joker wreaks havoc...']
+    }
+    df = pd.DataFrame(sample_data)
     df['features'] = df['title'] + ' ' + df['director'] + ' ' + df['cast'] + ' ' + df['listed_in'] + ' ' + df['description']
     
     tfidf = TfidfVectorizer(stop_words='english')
