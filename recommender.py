@@ -2,7 +2,6 @@ import pandas as pd
 import streamlit as st
 import requests
 import random
-from youtube_search import YoutubeSearch
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from streamlit_extras.card import card
@@ -93,14 +92,6 @@ def fetch_poster(title):
         pass
     return get_random_movie_image()
 
-def fetch_trailer(title):
-    try:
-        results = YoutubeSearch(f"{title} official trailer", max_results=1).to_dict()
-        if results:
-            return f"https://www.youtube.com/watch?v={results[0]['id']}"
-    except:
-        return None
-
 def get_recommendations(title, df, cosine_sim, indices, n=10):
     try:
         idx = indices[title]
@@ -142,17 +133,8 @@ def main():
 
             with col1:
                 poster_url = fetch_poster(movie_query)
-                trailer_url = fetch_trailer(movie_query)
                 if poster_url:
-                    if trailer_url:
-                        st.markdown(
-                            f'<a href="{trailer_url}" target="_blank">'
-                            f'<img src="{poster_url}" class="movie-poster" alt="{movie_query} poster">'
-                            f'</a>', 
-                            unsafe_allow_html=True
-                        )
-                    else:
-                        st.image(poster_url, use_column_width=True)
+                    st.image(poster_url, use_column_width=True)
 
             with col2:
                 st.write(f"**Director:** {searched_movie['director']}")
@@ -160,8 +142,6 @@ def main():
                 st.write(f"**Country:** {searched_movie['country']}")
                 st.write(f"**Genres:** {searched_movie['listed_in']}")
                 st.write(f"**Description:** {searched_movie['description']}")
-                if trailer_url:
-                    st.markdown(f'[▶ Watch Trailer]({trailer_url})', unsafe_allow_html=True)
 
             st.divider()
 
@@ -181,7 +161,6 @@ def main():
                     for i, (_, movie) in enumerate(recommendations.iterrows()):
                         with cols[i % 4]:
                             poster = fetch_poster(movie['title'])
-                            trailer = fetch_trailer(movie['title'])
                             score = scores[i]
                             
                             card_content = f"""
@@ -189,11 +168,8 @@ def main():
                                 <img src="{poster}" class="movie-poster" alt="{movie['title']} poster">
                                 <h4>{movie['title']}</h4>
                                 <p>Similarity: <span class="match-score">{score*100:.0f}%</span></p>
+                            </div>
                             """
-                            if trailer:
-                                card_content += f'<a href="{trailer}" target="_blank">▶ Watch Trailer</a>'
-                            card_content += "</div>"
-                            
                             st.markdown(card_content, unsafe_allow_html=True)
                 else:
                     st.warning("No matching movies found with selected filters.")
